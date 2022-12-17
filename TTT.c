@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include "MQTTClient.h"
 
 /* write a function here that determines whether the game will be between a 
 computer vs player or player vs player will be a simple if statement that 
@@ -226,6 +227,19 @@ if that spot is empty otherwise find an open spot and input. */
 
  int main()
 {    
+
+       MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
+    int rc;
+    int ch;
+    //create client
+    MQTTClient_create(&client, ADDRESS, CLIENTID,
+        MQTTCLIENT_PERSISTENCE_NONE, NULL);
+    conn_opts.keepAliveInterval = 20;
+    conn_opts.cleansession = 1;
+    //set callbacks
+    MQTTClient_setCallbacks(client, NULL, connlost, msgarrvd, delivered);
+
+    
     printf ("Enter your choice of opponent \n 1 for a computer \n 2 for another player ");
 
     player = getchar();
@@ -249,7 +263,12 @@ if that spot is empty otherwise find an open spot and input. */
         
         }
             printf ("this is the end of the game");
-    
-            exit(0);
     }
+
+    MQTTClient_subscribe(client, TOPIC, QOS);
+    while (quit != true);
+    MQTTClient_disconnect(client, 10000);
+    MQTTClient_destroy(&client);
+    return rc;
+    exit(0);
 }          
